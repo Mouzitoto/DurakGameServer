@@ -37,18 +37,16 @@ public class DGListener extends Listener {
                     sendChatMsg(connection, privateMsg);
 
 
-
-
-
             }
         }
     }
 
     private void sendChatMsg(Connection connection, PrivateMsg privateMsg) {
         Player player = DGServer.players.get(connection);
-        ChatMsg chatMsg = new ChatMsg(player, privateMsg.getMsg());
-        Room room = DGServer.rooms.get(privateMsg.getRoomId());
 
+        ChatMsg chatMsg = new ChatMsg(player, privateMsg.getMsg());
+
+        Room room = DGServer.rooms.get(privateMsg.getRoomId());
         room.getChat().add(chatMsg);
 
         BroadCastMsg broadCastMsg = new BroadCastMsg();
@@ -88,7 +86,6 @@ public class DGListener extends Listener {
 
             connection.sendTCP(privateMsg);
         }
-
     }
 
     private void newPlayer(Connection connection, PrivateMsg privateMsg) {
@@ -96,6 +93,7 @@ public class DGListener extends Listener {
         Player player = new Player();
         player.setName(privateMsg.getMsg());
         player.setId(UUID.randomUUID().toString());
+        player.setConnection(connection);
 
         DGServer.players.put(connection, player);
 
