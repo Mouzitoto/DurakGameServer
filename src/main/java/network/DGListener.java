@@ -2,10 +2,7 @@ package network;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import game.ChatMsg;
-import game.MsgState;
-import game.Player;
-import game.Room;
+import game.*;
 
 import java.util.Date;
 import java.util.UUID;
@@ -35,10 +32,55 @@ public class DGListener extends Listener {
 
                 case SEND_CHAT_MSG:
                     sendChatMsg(connection, privateMsg);
+                    break;
+
+                case START_GAME:
+                    startGame(privateMsg);
+                    break;
 
 
             }
         }
+    }
+
+    private void startGame(PrivateMsg privateMsg) {
+        Room room = DGServer.rooms.get(privateMsg.getRoomId());
+        room.setIsOpen(false);
+        room.setStartGameDate(new Date());
+
+        BroadCastMsg broadCastMsg = new BroadCastMsg();
+        broadCastMsg.setMsgState(MsgState.START_GAME);
+
+        broadCastToRoom(room, broadCastMsg);
+
+
+
+        room.setDeck(GameUtils.createShuffledDeck());
+
+        privateMsg.setMsgState(MsgState.GET_CARD);
+
+        //send 6 cards each player in the room
+        for (Player player : room.getPlayers())
+            for (int i = 0; i < 6; i++) {
+                Card card = GameUtils.getFirstCardFromTheDeck(room.getDeck());
+                player.getCards().add(card);
+                privateMsg.setCardId(card.getId());
+                player.getConnection().sendTCP(privateMsg);
+            }
+
+        //send trump card
+        Card trumpCard = room.getDeck().get(0);
+        broadCastMsg.setMsgState(MsgState.SET_TRUMP);
+        broadCastMsg.setCardId(trumpCard.getId());
+
+        broadCastToRoom(room, broadCastMsg);
+
+        //send first mover
+        room.setNowMovingPlayer(GameUtils.findFirstMover(room.getPlayers(), trumpCard.getSuit()));
+        broadCastMsg.setMsgState(MsgState.NOW_MOVING_PLAYER);
+        broadCastMsg.setMsg(room.getNowMovingPlayer().getId());
+
+        broadCastToRoom(room, broadCastMsg);
     }
 
     private void sendChatMsg(Connection connection, PrivateMsg privateMsg) {

@@ -38,9 +38,13 @@ public class Room {
         for (Player player : players) {
             sb.append(player.getName());
             sb.append(COMMA);
+            sb.append(player.getId());
+            sb.append(COMMA);
         }
 
-        return sb.toString();
+        String str = sb.toString();
+
+        return str.substring(0, str.length()-1);
     }
 
     public long getId() {
