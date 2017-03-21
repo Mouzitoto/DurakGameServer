@@ -19,9 +19,10 @@ public class Room {
     Player roomOwner;
     Player nowMovingPlayer;
     List<Card> deck;
-    HashMap<String, List<Card>> tableTop;
+    List<Card> tableTop;
     boolean isOpen;
     List<ChatMsg> chat;
+    Suit trump;
 
     public Room() {
         id = DGServer.lastRoomId++;
@@ -29,7 +30,7 @@ public class Room {
         createDate = new Date();
         isOpen = true;
         chat = new ArrayList<>();
-        tableTop = new HashMap<>();
+        tableTop = new ArrayList<>();
 
         //todo: check, is it works?
         DGServer.rooms.put(id, this);
@@ -106,11 +107,11 @@ public class Room {
         this.deck = deck;
     }
 
-    public HashMap<String, List<Card>> getTableTop() {
+    public List<Card> getTableTop() {
         return tableTop;
     }
 
-    public void setTableTop(HashMap<String, List<Card>> tableTop) {
+    public void setTableTop(List<Card> tableTop) {
         this.tableTop = tableTop;
     }
 
@@ -128,5 +129,13 @@ public class Room {
 
     public void setChat(List<ChatMsg> chat) {
         this.chat = chat;
+    }
+
+    public Suit getTrump() {
+        return trump;
+    }
+
+    public void setTrump(Suit trump) {
+        this.trump = trump;
     }
 }

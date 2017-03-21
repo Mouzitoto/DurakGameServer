@@ -51,16 +51,60 @@ public class DGListener extends Listener {
     }
 
     private void defence(Connection connection, PrivateMsg privateMsg) {
-        //todo: add validation later
-        //remove card from player cards
         Player player = DGServer.players.get(connection);
         Room room = DGServer.rooms.get(privateMsg.getRoomId());
 
-        Card currentCard = null;
+        Card defenceCard = null;
         for (Card card : player.getCards())
-            if(card.getId() == privateMsg.getCardId())
-                currentCard = card;
-        player.getCards().remove(currentCard);
+            if (card.getId() == privateMsg.getCardId()) {
+                defenceCard = card;
+                break;
+            }
+
+        //validation for cheating
+        if (defenceCard == null) {
+            privateMsg.setMsgState(MsgState.WRONG_PLAYER_CARD);
+            connection.sendTCP(privateMsg);
+            return;
+        }
+
+        Card attackCard = null;
+        for (Card card : room.getTableTop())
+            if (card.getId() == privateMsg.getTargetCardId()) {
+                attackCard = card;
+                break;
+            }
+
+        //validation for cheating
+        if (attackCard == null) {
+            privateMsg.setMsgState(MsgState.WRONG_TARGET_CARD);
+            connection.sendTCP(privateMsg);
+            return;
+        }
+
+        //todo: defence validation
+        boolean isCardValid = false;
+        if (attackCard.getSuit().equals(room.getTrump())) {
+            if (defenceCard.getSuit().equals(room.getTrump()))
+                if (defenceCard.getValue() > attackCard.getValue())
+                    isCardValid = true;
+        } else { //attack card is not a trump
+            if (defenceCard.getSuit().equals(attackCard.getSuit()))
+                if (defenceCard.getValue() > attackCard.getValue())
+                    isCardValid = true;
+
+            if (defenceCard.getSuit().equals(room.getTrump()))
+                isCardValid = true;
+        }
+
+        if (!isCardValid) {
+            privateMsg.setMsgState(MsgState.INVALID_DEFENCE_CARD);
+            connection.sendTCP(privateMsg);
+            return;
+        }
+
+        //remove card from player cards
+        player.getCards().remove(defenceCard);
 
         //broadcast defence cardId
         BroadCastMsg broadCastMsg = new BroadCastMsg();
@@ -72,19 +116,43 @@ public class DGListener extends Listener {
         broadCastToRoom(room, broadCastMsg);
 
         //add card to tabletop
-        room.getTableTop().get(MsgState.DEFENCE.name()).add(currentCard);
+        room.getTableTop().add(defenceCard);
     }
 
     private void attack(Connection connection, PrivateMsg privateMsg) {
-        //todo: add validation for repeating attack, check tabletop
-        //remove card from player cards
         Player player = DGServer.players.get(connection);
         Room room = DGServer.rooms.get(privateMsg.getRoomId());
 
         Card currentCard = null;
         for (Card card : player.getCards())
-            if(card.getId() == privateMsg.getCardId())
+            if (card.getId() == privateMsg.getCardId()) {
                 currentCard = card;
+                break;
+            }
+
+        //validation for cheating
+        if (currentCard == null) {
+            privateMsg.setMsgState(MsgState.WRONG_PLAYER_CARD);
+            connection.sendTCP(privateMsg);
+            return;
+        }
+
+        //validation for repeating attack
+        boolean isCardValid = false;
+        if (room.getTableTop().size() > 0)
+            for (Card card : room.getTableTop())
+                if (card.getValue() == currentCard.getValue()) {
+                    isCardValid = true;
+                    break;
+                }
+
+        if (!isCardValid) {
+            privateMsg.setMsgState(MsgState.NOT_EQUAL_CARD);
+            connection.sendTCP(privateMsg);
+            return;
+        }
+
+        //remove card from player cards
         player.getCards().remove(currentCard);
 
         //broadcast attacker cardId
@@ -96,7 +164,7 @@ public class DGListener extends Listener {
         broadCastToRoom(room, broadCastMsg);
 
         //add card to tabletop
-        room.getTableTop().get(MsgState.ATTACK.name()).add(currentCard);
+        room.getTableTop().add(currentCard);
 
     }
 
@@ -113,10 +181,6 @@ public class DGListener extends Listener {
 
         //create deck and tableTop
         room.setDeck(GameUtils.createShuffledDeck());
-        List<Card> attackCards = new ArrayList<>();
-        List<Card> defenceCards = new ArrayList<>();
-        room.getTableTop().put(MsgState.ATTACK.name(), attackCards);
-        room.getTableTop().put(MsgState.DEFENCE.name(), defenceCards);
 
         privateMsg.setMsgState(MsgState.GET_CARD);
 
