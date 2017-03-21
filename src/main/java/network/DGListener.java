@@ -4,7 +4,9 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import game.*;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.UUID;
 
 /**
@@ -38,9 +40,42 @@ public class DGListener extends Listener {
                     startGame(privateMsg);
                     break;
 
+                case ATTACK:
+                    attack(connection, privateMsg);
+                    break;
+
 
             }
         }
+    }
+
+    private void attack(Connection connection, PrivateMsg privateMsg) {
+        //remove card from player cards
+        Player player = DGServer.players.get(connection);
+        Room room = DGServer.rooms.get(privateMsg.getRoomId());
+
+        Card currentCard = null;
+        for (Card card : player.getCards())
+            if(card.getId() == privateMsg.getCardId())
+                currentCard = card;
+        player.getCards().remove(currentCard);
+
+        Iterator<Card> iterator = player.getCards().iterator();
+        while(iterator.hasNext())
+            if(iterator.next().getId() == privateMsg.getCardId())
+                iterator.remove();
+
+        //broadcast attacker cardId
+        BroadCastMsg broadCastMsg = new BroadCastMsg();
+        broadCastMsg.setMsgState(MsgState.ATTACK);
+        broadCastMsg.setMsg(player.getId());
+        broadCastMsg.setCardId(privateMsg.getCardId());
+
+        broadCastToRoom(room, broadCastMsg);
+
+        //add card to tabletop
+        room.getTableTop().add(currentCard);
+
     }
 
     private void startGame(PrivateMsg privateMsg) {
@@ -56,6 +91,7 @@ public class DGListener extends Listener {
 
 
         room.setDeck(GameUtils.createShuffledDeck());
+        room.setTableTop(new ArrayList<>());
 
         privateMsg.setMsgState(MsgState.GET_CARD);
 

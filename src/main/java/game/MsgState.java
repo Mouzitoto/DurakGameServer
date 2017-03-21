@@ -15,8 +15,8 @@ public enum MsgState {
     GET_CARD,
     SET_TRUMP,
     NOW_MOVING_PLAYER,
-    NEXT_MOVE,
     ATTACK,
+    PLAYER_CARDS_COUNT,
     DEFENCE,
     END_MOVE
 }

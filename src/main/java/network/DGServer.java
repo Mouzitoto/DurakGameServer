@@ -8,15 +8,14 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by Mouzitoto on 20.03.2017.
  */
 public class DGServer {
     private static Logger logger = Logger.getLogger(DGServer.class);
+    //todo: if we will have a lot of players, search will be slow, think about it
     public static HashMap<Connection, Player> players = new HashMap<>();
     public static HashMap<Long, Room> rooms = new HashMap<>();
     public static long lastRoomId = 0;

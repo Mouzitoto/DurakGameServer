@@ -18,6 +18,7 @@ public class Room {
     Player roomOwner;
     Player nowMovingPlayer;
     List<Card> deck;
+    List<Card> tableTop;
     boolean isOpen;
     List<ChatMsg> chat;
 
@@ -101,6 +102,14 @@ public class Room {
 
     public void setDeck(List<Card> deck) {
         this.deck = deck;
+    }
+
+    public List<Card> getTableTop() {
+        return tableTop;
+    }
+
+    public void setTableTop(List<Card> tableTop) {
+        this.tableTop = tableTop;
     }
 
     public boolean isOpen() {
