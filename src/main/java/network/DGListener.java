@@ -60,11 +60,6 @@ public class DGListener extends Listener {
                 currentCard = card;
         player.getCards().remove(currentCard);
 
-        Iterator<Card> iterator = player.getCards().iterator();
-        while(iterator.hasNext())
-            if(iterator.next().getId() == privateMsg.getCardId())
-                iterator.remove();
-
         //broadcast attacker cardId
         BroadCastMsg broadCastMsg = new BroadCastMsg();
         broadCastMsg.setMsgState(MsgState.ATTACK);
