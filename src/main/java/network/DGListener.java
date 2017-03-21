@@ -4,10 +4,7 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import game.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by Mouzitoto on 20.03.2017.
@@ -44,12 +41,42 @@ public class DGListener extends Listener {
                     attack(connection, privateMsg);
                     break;
 
+                case DEFENCE:
+                    defence(connection, privateMsg);
+                    break;
+
 
             }
         }
     }
 
+    private void defence(Connection connection, PrivateMsg privateMsg) {
+        //todo: add validation later
+        //remove card from player cards
+        Player player = DGServer.players.get(connection);
+        Room room = DGServer.rooms.get(privateMsg.getRoomId());
+
+        Card currentCard = null;
+        for (Card card : player.getCards())
+            if(card.getId() == privateMsg.getCardId())
+                currentCard = card;
+        player.getCards().remove(currentCard);
+
+        //broadcast defence cardId
+        BroadCastMsg broadCastMsg = new BroadCastMsg();
+        broadCastMsg.setMsgState(MsgState.DEFENCE);
+        broadCastMsg.setMsg(player.getId());
+        broadCastMsg.setCardId(privateMsg.getCardId());
+        broadCastMsg.setTargetCardId(privateMsg.getTargetCardId());
+
+        broadCastToRoom(room, broadCastMsg);
+
+        //add card to tabletop
+        room.getTableTop().get(MsgState.DEFENCE.name()).add(currentCard);
+    }
+
     private void attack(Connection connection, PrivateMsg privateMsg) {
+        //todo: add validation for repeating attack, check tabletop
         //remove card from player cards
         Player player = DGServer.players.get(connection);
         Room room = DGServer.rooms.get(privateMsg.getRoomId());
@@ -69,7 +96,7 @@ public class DGListener extends Listener {
         broadCastToRoom(room, broadCastMsg);
 
         //add card to tabletop
-        room.getTableTop().add(currentCard);
+        room.getTableTop().get(MsgState.ATTACK.name()).add(currentCard);
 
     }
 
@@ -84,9 +111,12 @@ public class DGListener extends Listener {
         broadCastToRoom(room, broadCastMsg);
 
 
-
+        //create deck and tableTop
         room.setDeck(GameUtils.createShuffledDeck());
-        room.setTableTop(new ArrayList<>());
+        List<Card> attackCards = new ArrayList<>();
+        List<Card> defenceCards = new ArrayList<>();
+        room.getTableTop().put(MsgState.ATTACK.name(), attackCards);
+        room.getTableTop().put(MsgState.DEFENCE.name(), defenceCards);
 
         privateMsg.setMsgState(MsgState.GET_CARD);
 

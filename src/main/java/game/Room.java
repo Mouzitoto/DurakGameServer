@@ -4,6 +4,7 @@ import network.DGServer;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -18,7 +19,7 @@ public class Room {
     Player roomOwner;
     Player nowMovingPlayer;
     List<Card> deck;
-    List<Card> tableTop;
+    HashMap<String, List<Card>> tableTop;
     boolean isOpen;
     List<ChatMsg> chat;
 
@@ -28,6 +29,7 @@ public class Room {
         createDate = new Date();
         isOpen = true;
         chat = new ArrayList<>();
+        tableTop = new HashMap<>();
 
         //todo: check, is it works?
         DGServer.rooms.put(id, this);
@@ -104,11 +106,11 @@ public class Room {
         this.deck = deck;
     }
 
-    public List<Card> getTableTop() {
+    public HashMap<String, List<Card>> getTableTop() {
         return tableTop;
     }
 
-    public void setTableTop(List<Card> tableTop) {
+    public void setTableTop(HashMap<String, List<Card>> tableTop) {
         this.tableTop = tableTop;
     }
 
