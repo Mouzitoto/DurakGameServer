@@ -3,6 +3,9 @@ package network;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import game.*;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Priority;
 
 import java.util.*;
 
@@ -10,6 +13,7 @@ import java.util.*;
  * Created by Mouzitoto on 20.03.2017.
  */
 public class DGListener extends Listener {
+    private static Logger logger = Logger.getLogger(DGListener.class);
 
     @Override
     public void received(Connection connection, Object object) {
@@ -45,9 +49,62 @@ public class DGListener extends Listener {
                     defence(connection, privateMsg);
                     break;
 
+                case END_MOVE:
+                    endMove(connection, privateMsg);
+                    break;
 
             }
         }
+    }
+
+    private void endMove(Connection connection, PrivateMsg privateMsg) {
+        //validate for cheating, check nowMovingPlayer with Player
+        Room room = DGServer.rooms.get(privateMsg.getRoomId());
+        Player player = DGServer.players.get(connection);
+        if (!player.equals(room.getNowMovingPlayer())) {
+            privateMsg.setMsgState(MsgState.INVALID_PLAYER_FOR_END_MOVE);
+            connection.sendTCP(privateMsg);
+            return;
+        }
+
+        //clear tableTop and attackCardsCount, defenceCardsCount
+        room.getTableTop().clear();
+        room.attackCardsCount = 0;
+        room.defenceCardsCount = 0;
+
+        //getCards, must be 6
+        privateMsg.setMsgState(MsgState.GET_CARD);
+        BroadCastMsg broadCastMsg = new BroadCastMsg();
+        broadCastMsg.setMsgState(MsgState.GET_CARD);
+
+        for (Player roomPlayer : room.getPlayers())
+            for (int i = roomPlayer.getCards().size(); i < 6; i++) {
+                Card card = GameUtils.getFirstCardFromTheDeck(room.getDeck());
+                roomPlayer.getCards().add(card);
+                privateMsg.setCardId(card.getId());
+                roomPlayer.getConnection().sendTCP(privateMsg);
+
+                broadCastMsg.setMsg(roomPlayer.getId());
+                broadCastToRoom(room, broadCastMsg);
+            }
+
+        //find next mover
+        try {
+            Player nextMover = GameUtils.findNextMover(room.getPlayers(), room.getNowMovingPlayer());
+            room.setNowMovingPlayer(nextMover);
+
+            broadCastMsg.setMsgState(MsgState.NOW_MOVING_PLAYER);
+            broadCastMsg.setMsg(nextMover.getId());
+
+            broadCastToRoom(room, broadCastMsg);
+
+        } catch (Exception e) {
+            logger.log(Level.ERROR, e.getMessage(), e);
+            broadCastMsg.setMsgState(MsgState.ERROR);
+            broadCastToRoom(room, broadCastMsg);
+            //todo: clear room vars, get all to lobby. Save errorID
+        }
+
     }
 
     private void defence(Connection connection, PrivateMsg privateMsg) {
@@ -82,7 +139,7 @@ public class DGListener extends Listener {
             return;
         }
 
-        //todo: defence validation
+        //defence validation
         boolean isCardValid = false;
         if (attackCard.getSuit().equals(room.getTrump())) {
             if (defenceCard.getSuit().equals(room.getTrump()))
@@ -117,6 +174,7 @@ public class DGListener extends Listener {
 
         //add card to tabletop
         room.getTableTop().add(defenceCard);
+        room.defenceCardsCount++;
     }
 
     private void attack(Connection connection, PrivateMsg privateMsg) {
@@ -165,6 +223,7 @@ public class DGListener extends Listener {
 
         //add card to tabletop
         room.getTableTop().add(currentCard);
+        room.attackCardsCount++;
 
     }
 
@@ -194,14 +253,14 @@ public class DGListener extends Listener {
             }
 
         //send trump card
-        Card trumpCard = room.getDeck().get(0);
+        room.setTrump(room.getDeck().get(0).getSuit());
         broadCastMsg.setMsgState(MsgState.SET_TRUMP);
-        broadCastMsg.setCardId(trumpCard.getId());
+        broadCastMsg.setCardId(room.getDeck().get(0).getId());
 
         broadCastToRoom(room, broadCastMsg);
 
         //send first mover
-        room.setNowMovingPlayer(GameUtils.findFirstMover(room.getPlayers(), trumpCard.getSuit()));
+        room.setNowMovingPlayer(GameUtils.findFirstMover(room.getPlayers(), room.getTrump()));
         broadCastMsg.setMsgState(MsgState.NOW_MOVING_PLAYER);
         broadCastMsg.setMsg(room.getNowMovingPlayer().getId());
 

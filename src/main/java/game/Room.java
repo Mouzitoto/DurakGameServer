@@ -4,7 +4,6 @@ import network.DGServer;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -12,17 +11,19 @@ import java.util.List;
  */
 public class Room {
     private static final String COMMA = ",";
-    long id;
-    List<Player> players;
-    Date createDate;
-    Date startGameDate;
-    Player roomOwner;
-    Player nowMovingPlayer;
-    List<Card> deck;
-    List<Card> tableTop;
-    boolean isOpen;
-    List<ChatMsg> chat;
-    Suit trump;
+    private long id;
+    private List<Player> players;
+    private Date createDate;
+    private Date startGameDate;
+    private Player roomOwner;
+    private Player nowMovingPlayer;
+    private List<Card> deck;
+    private List<Card> tableTop;
+    public int attackCardsCount;
+    public int defenceCardsCount;
+    private boolean isOpen;
+    private List<ChatMsg> chat;
+    private Suit trump;
 
     public Room() {
         id = DGServer.lastRoomId++;
@@ -31,6 +32,8 @@ public class Room {
         isOpen = true;
         chat = new ArrayList<>();
         tableTop = new ArrayList<>();
+        attackCardsCount = 0;
+        defenceCardsCount = 0;
 
         //todo: check, is it works?
         DGServer.rooms.put(id, this);
@@ -39,7 +42,8 @@ public class Room {
 
     public String getPlayersAsString() {
         StringBuilder sb = new StringBuilder();
-        for (Player player : players) {
+        for (int i = 0; i < players.size(); i++) {
+            Player player = players.get(i);
             sb.append(player.getName());
             sb.append(COMMA);
             sb.append(player.getId());

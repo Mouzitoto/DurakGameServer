@@ -78,4 +78,26 @@ public class GameUtils {
         return firstMover;
     }
 
+    public static Player findNextMover(List<Player> players, Player prevMover) throws Exception {
+        int prevMoverIndex = -1;
+
+        for (int i = 0; i < players.size(); i++) {
+            Player player = players.get(i);
+            if (player.equals(prevMover))
+                prevMoverIndex = i;
+        }
+
+        if (prevMoverIndex == -1)
+            throw new Exception("Error with finding nextMover");
+
+        Player nextMover;
+        if (prevMoverIndex == players.size() - 1) {
+            nextMover = players.get(0);
+        } else {
+            nextMover = players.get(prevMoverIndex + 1);
+        }
+
+        return nextMover;
+    }
+
 }

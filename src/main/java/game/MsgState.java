@@ -21,5 +21,7 @@ public enum MsgState {
     NOT_EQUAL_CARD,
     DEFENCE,
     INVALID_DEFENCE_CARD,
-    END_MOVE
+    END_MOVE,
+    INVALID_PLAYER_FOR_END_MOVE,
+    ERROR
 }
