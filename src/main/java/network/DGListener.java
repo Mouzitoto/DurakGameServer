@@ -53,7 +53,78 @@ public class DGListener extends Listener {
                     endMove(connection, privateMsg);
                     break;
 
+                case LOOSE_ROUND:
+                    looseRound(connection, privateMsg);
+
             }
+        }
+    }
+
+    private void looseRound(Connection connection, PrivateMsg privateMsg) {
+        BroadCastMsg broadCastMsg = new BroadCastMsg();
+
+        //validate for cheating, check player for defencer
+        Room room = DGServer.rooms.get(privateMsg.getRoomId());
+        Player player = DGServer.players.get(connection);
+        Player defender;
+        try {
+            defender = GameUtils.findNextMover(room.getPlayers(), room.getNowMovingPlayer());
+            if (player != defender) {
+                privateMsg.setMsgState(MsgState.INVALID_PLAYER_FOR_LOOSE_ROUND);
+                connection.sendTCP(privateMsg);
+                return;
+            }
+        } catch (Exception e) {
+            logger.log(Level.ERROR, e.getMessage(), e);
+            broadCastMsg.setMsgState(MsgState.ERROR);
+            broadCastToRoom(room, broadCastMsg);
+            return;
+            //todo: clear room vars, get all to lobby. Save errorID
+        }
+
+        //send all cards from tabletop to looser
+        privateMsg.setMsgState(MsgState.GET_CARD);
+        broadCastMsg.setMsgState(MsgState.GET_CARD);
+
+        for (Card card : room.getTableTop()) {
+            //for server info
+            defender.getCards().add(card);
+            //send card to defender
+            privateMsg.setCardId(card.getId());
+            connection.sendTCP(privateMsg);
+            //tell other players, that defender has +1 card now
+            broadCastMsg.setMsg(defender.getId());
+            broadCastToRoom(room, broadCastMsg);
+        }
+
+        //send cards to players, must be 6
+        for (Player roomPlayer : room.getPlayers())
+            for (int i = roomPlayer.getCards().size(); i < 6; i++) {
+                Card card = GameUtils.getFirstCardFromTheDeck(room.getDeck());
+                roomPlayer.getCards().add(card);
+
+                privateMsg.setCardId(card.getId());
+                roomPlayer.getConnection().sendTCP(privateMsg);
+
+                broadCastMsg.setMsg(roomPlayer.getId());
+                broadCastToRoom(room, broadCastMsg);
+            }
+
+        //send all players - new moover
+        try {
+            Player nextMover = GameUtils.findNextMover(room.getPlayers(), defender);
+            room.setNowMovingPlayer(nextMover);
+
+            broadCastMsg.setMsgState(MsgState.NOW_MOVING_PLAYER);
+            broadCastMsg.setMsg(nextMover.getId());
+
+            broadCastToRoom(room, broadCastMsg);
+
+        } catch (Exception e) {
+            logger.log(Level.ERROR, e.getMessage(), e);
+            broadCastMsg.setMsgState(MsgState.ERROR);
+            broadCastToRoom(room, broadCastMsg);
+            //todo: clear room vars, get all to lobby. Save errorID
         }
     }
 
