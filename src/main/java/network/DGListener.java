@@ -101,6 +101,13 @@ public class DGListener extends Listener {
         for (Player roomPlayer : room.getPlayers())
             for (int i = roomPlayer.getCards().size(); i < 6; i++) {
                 Card card = GameUtils.getFirstCardFromTheDeck(room.getDeck());
+
+                if (card == null) { //if deck end
+                    broadCastMsg.setMsgState(MsgState.DECK_END);
+                    broadCastToRoom(room, broadCastMsg);
+                    continue;
+                }
+
                 roomPlayer.getCards().add(card);
 
                 privateMsg.setCardId(card.getId());
@@ -151,6 +158,13 @@ public class DGListener extends Listener {
         for (Player roomPlayer : room.getPlayers())
             for (int i = roomPlayer.getCards().size(); i < 6; i++) {
                 Card card = GameUtils.getFirstCardFromTheDeck(room.getDeck());
+
+                if (card == null) { //if deck end
+                    broadCastMsg.setMsgState(MsgState.DECK_END);
+                    broadCastToRoom(room, broadCastMsg);
+                    continue;
+                }
+
                 roomPlayer.getCards().add(card);
                 privateMsg.setCardId(card.getId());
                 roomPlayer.getConnection().sendTCP(privateMsg);
@@ -314,21 +328,28 @@ public class DGListener extends Listener {
 
         privateMsg.setMsgState(MsgState.GET_CARD);
 
-        //send 6 cards each player in the room
-        for (Player player : room.getPlayers())
-            for (int i = 0; i < 6; i++) {
-                Card card = GameUtils.getFirstCardFromTheDeck(room.getDeck());
-                player.getCards().add(card);
-                privateMsg.setCardId(card.getId());
-                player.getConnection().sendTCP(privateMsg);
-            }
-
         //send trump card
         room.setTrump(room.getDeck().get(0).getSuit());
         broadCastMsg.setMsgState(MsgState.SET_TRUMP);
         broadCastMsg.setCardId(room.getDeck().get(0).getId());
 
         broadCastToRoom(room, broadCastMsg);
+
+        //send 6 cards each player in the room
+        for (Player player : room.getPlayers())
+            for (int i = 0; i < 6; i++) {
+                Card card = GameUtils.getFirstCardFromTheDeck(room.getDeck());
+
+                if (card == null) { //if deck end
+                    broadCastMsg.setMsgState(MsgState.DECK_END);
+                    broadCastToRoom(room, broadCastMsg);
+                    continue;
+                }
+
+                player.getCards().add(card);
+                privateMsg.setCardId(card.getId());
+                player.getConnection().sendTCP(privateMsg);
+            }
 
         //send first mover
         room.setNowMovingPlayer(GameUtils.findFirstMover(room.getPlayers(), room.getTrump()));

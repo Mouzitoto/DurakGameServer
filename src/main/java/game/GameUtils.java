@@ -56,11 +56,15 @@ public class GameUtils {
     }
 
     public static Card getFirstCardFromTheDeck(List<Card> deck) {
-        Card card = deck.get(deck.size());
+        if (!deck.isEmpty()) {
+            Card card = deck.get(deck.size() - 1);
 
-        deck.remove(deck.size());
+            deck.remove(deck.size() - 1);
 
-        return card;
+            return card;
+
+        } else
+            return null;
     }
 
     public static Player findFirstMover(List<Player> players, Suit trump) {
