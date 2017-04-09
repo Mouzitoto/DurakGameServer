@@ -1,5 +1,6 @@
 package network;
 
+import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 import game.Player;
@@ -35,6 +36,10 @@ public class DGServer {
         server.start();
         server.bind(25015);
         server.addListener(new DGListener());
+
+        Kryo kryo = server.getKryo();
+        kryo.register(PrivateMsg.class);
+        kryo.register(BroadCastMsg.class);
     }
 
     //todo: we need to monitor rooms. if it hasnt any players inside = delete it

@@ -413,6 +413,8 @@ public class DGListener extends Listener {
         player.setId(UUID.randomUUID().toString());
         player.setConnection(connection);
 
+        logger.log(Level.INFO, "newPlayer: " + player.getName());
+
         DGServer.players.put(connection, player);
 
         //send playerId back
