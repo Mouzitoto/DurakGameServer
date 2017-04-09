@@ -34,7 +34,7 @@ public class DGServer {
     private void start() throws IOException {
         Server server = new Server();
         server.start();
-        server.bind(25015);
+        server.bind(27015);
         server.addListener(new DGListener());
 
         Kryo kryo = server.getKryo();
