@@ -3,6 +3,7 @@ package network;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
+import game.MsgState;
 import game.Player;
 import game.Room;
 import org.apache.log4j.Level;
@@ -40,6 +41,7 @@ public class DGServer {
         Kryo kryo = server.getKryo();
         kryo.register(PrivateMsg.class);
         kryo.register(BroadCastMsg.class);
+        kryo.register(MsgState.class);
     }
 
     //todo: we need to monitor rooms. if it hasnt any players inside = delete it
