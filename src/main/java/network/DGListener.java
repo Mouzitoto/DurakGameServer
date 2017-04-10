@@ -2,6 +2,7 @@ package network;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
+import com.google.gson.Gson;
 import game.*;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -14,6 +15,9 @@ import java.util.*;
  */
 public class DGListener extends Listener {
     private static Logger logger = Logger.getLogger(DGListener.class);
+    Gson gson = new Gson();
+
+    //todo: clean info, when player disconnects
 
     @Override
     public void received(Connection connection, Object object) {
@@ -393,7 +397,7 @@ public class DGListener extends Listener {
 
             room.getPlayers().add(player);
 
-            //send room player names back
+            //send room player names + ids back
             privateMsg.setMsgState(MsgState.SUCCESSFULLY_JOINED_ROOM);
             privateMsg.setMsg(room.getPlayersAsString());
 
@@ -420,8 +424,14 @@ public class DGListener extends Listener {
         //send playerId back
         privateMsg.setMsgState(MsgState.HANDSHAKE);
         privateMsg.setMsg(player.getId());
-
         connection.sendTCP(privateMsg);
+
+        //send information about rooms
+        String allRoomJson = gson.toJson(DGServer.rooms.values());
+        privateMsg.setMsgState(MsgState.ROOMS_INFO);
+        privateMsg.setMsg(allRoomJson);
+        connection.sendTCP(privateMsg);
+
     }
 
     private void createRoom(Connection connection, PrivateMsg privateMsg) {

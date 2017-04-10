@@ -8,11 +8,11 @@ import java.util.UUID;
  * Created by Mouzitoto on 20.03.2017.
  */
 public class PrivateMsg {
-    MsgState msgState;
-    String msg;
-    long roomId;
-    int cardId;
-    int targetCardId;
+    private MsgState msgState;
+    private String msg;
+    private long roomId;
+    private int cardId;
+    private int targetCardId;
 
 
     public MsgState getMsgState() {

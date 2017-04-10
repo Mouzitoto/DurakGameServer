@@ -6,6 +6,7 @@ package game;
 public enum MsgState {
     NEW_PLAYER,
     HANDSHAKE,
+    ROOMS_INFO,
     CREATE_ROOM,
     JOIN_ROOM,
     SUCCESSFULLY_JOINED_ROOM,
