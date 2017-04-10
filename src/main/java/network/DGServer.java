@@ -6,11 +6,14 @@ import com.esotericsoftware.kryonet.Server;
 import game.MsgState;
 import game.Player;
 import game.Room;
+import game.RoomInfo;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Mouzitoto on 20.03.2017.
@@ -42,6 +45,21 @@ public class DGServer {
         kryo.register(PrivateMsg.class);
         kryo.register(BroadCastMsg.class);
         kryo.register(MsgState.class);
+    }
+
+    public static List<RoomInfo> getRoomsInfo() {
+        List<RoomInfo> roomsInfo = new ArrayList<>();
+
+        for (Room room : rooms.values()) {
+            RoomInfo roomInfo = new RoomInfo();
+            roomInfo.setId(room.getId());
+            roomInfo.setOwner(room.getRoomOwner().getName());
+            roomInfo.setPlayersCount(room.getPlayers().size());
+
+            roomsInfo.add(roomInfo);
+        }
+
+        return roomsInfo;
     }
 
     //todo: we need to monitor rooms. if it hasnt any players inside = delete it

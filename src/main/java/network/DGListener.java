@@ -29,12 +29,19 @@ public class DGListener extends Listener {
                     newPlayer(connection, privateMsg);
                     break;
 
+                case ROOMS_INFO:
+                    roomsInfo(connection, privateMsg);
+
                 case CREATE_ROOM:
                     createRoom(connection, privateMsg);
                     break;
 
                 case JOIN_ROOM:
                     joinRoom(connection, privateMsg);
+                    break;
+
+                case QUIT_ROOM:
+                    //todo: quitRoom
                     break;
 
                 case SEND_CHAT_MSG:
@@ -402,12 +409,36 @@ public class DGListener extends Listener {
             privateMsg.setMsg(room.getPlayersAsString());
 
             connection.sendTCP(privateMsg);
+
+            //broadcast to room about new player
+            BroadCastMsg broadCastMsg = new BroadCastMsg();
+            broadCastMsg.setMsgState(MsgState.SUCCESSFULLY_JOINED_ROOM);
+            broadCastMsg.setMsg(room.getPlayersAsString());
+
+            broadCastToRoom(room, broadCastMsg);
         } else {
             privateMsg.setMsg(null);
             privateMsg.setMsgState(MsgState.ROOM_IS_CLOSED);
 
             connection.sendTCP(privateMsg);
         }
+    }
+
+    private void createRoom(Connection connection, PrivateMsg privateMsg) {
+        Room room = new Room();
+
+        privateMsg.setRoomId(room.getId());
+
+        joinRoom(connection, privateMsg);
+    }
+
+    private void roomsInfo(Connection connection, PrivateMsg privateMsg) {
+        String roomsInfoJson = gson.toJson(DGServer.getRoomsInfo());
+        privateMsg.setMsgState(MsgState.ROOMS_INFO);
+        privateMsg.setMsg(roomsInfoJson);
+        connection.sendTCP(privateMsg);
+
+        logger.log(Level.INFO, "roomsInfo sent, json: " + roomsInfoJson);
     }
 
     private void newPlayer(Connection connection, PrivateMsg privateMsg) {
@@ -429,22 +460,7 @@ public class DGListener extends Listener {
         logger.log(Level.INFO, "handshake sent, playerId: " + player.getId());
 
         //send information about rooms
-        String allRoomJson = gson.toJson(DGServer.rooms.values());
-        privateMsg.setMsgState(MsgState.ROOMS_INFO);
-        privateMsg.setMsg(allRoomJson);
-        connection.sendTCP(privateMsg);
+        roomsInfo(connection, privateMsg);
 
-        logger.log(Level.INFO, "roomsInfo sent, json: " + allRoomJson);
-
-    }
-
-    private void createRoom(Connection connection, PrivateMsg privateMsg) {
-        Player player = DGServer.players.get(connection);
-
-        Room room = new Room();
-
-        privateMsg.setMsg(String.valueOf(room.getId()));
-
-        connection.sendTCP(privateMsg);
     }
 }

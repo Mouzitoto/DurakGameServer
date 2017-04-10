@@ -5,7 +5,7 @@ package game;
  */
 public class RoomInfo {
     private String owner;
-    private int id;
+    private long id;
     private int playersCount;
 
     public String getOwner() {
@@ -16,11 +16,11 @@ public class RoomInfo {
         this.owner = owner;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

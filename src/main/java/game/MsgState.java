@@ -10,6 +10,7 @@ public enum MsgState {
     CREATE_ROOM,
     JOIN_ROOM,
     SUCCESSFULLY_JOINED_ROOM,
+    QUIT_ROOM,
     ROOM_IS_CLOSED,
     SEND_CHAT_MSG,
     START_GAME,
