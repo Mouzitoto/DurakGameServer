@@ -426,11 +426,15 @@ public class DGListener extends Listener {
         privateMsg.setMsg(player.getId());
         connection.sendTCP(privateMsg);
 
+        logger.log(Level.INFO, "handshake sent, playerId: " + player.getId());
+
         //send information about rooms
         String allRoomJson = gson.toJson(DGServer.rooms.values());
         privateMsg.setMsgState(MsgState.ROOMS_INFO);
         privateMsg.setMsg(allRoomJson);
         connection.sendTCP(privateMsg);
+
+        logger.log(Level.INFO, "roomsInfo sent, json: " + allRoomJson);
 
     }
 
