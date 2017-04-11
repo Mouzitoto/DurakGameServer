@@ -10,7 +10,6 @@ import java.util.List;
  * Created by Mouzitoto on 20.03.2017.
  */
 public class Room {
-    private static final String COMMA = ",";
     private long id;
     private List<Player> players;
     private Date createDate;
@@ -42,17 +41,17 @@ public class Room {
 
     public String getPlayersAsString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("[");
         for (int i = 0; i < players.size(); i++) {
             Player player = players.get(i);
-            sb.append(player.getName());
-            sb.append(COMMA);
-            sb.append(player.getId());
-            sb.append(COMMA);
+            sb.append("{");
+            sb.append("\"name\":\"" + player.getName() + "\",");
+            sb.append("\"id\":\"" + player.getId() + "\"");
+            sb.append("},");
         }
+        sb.append("]");
 
-        String str = sb.toString();
-
-        return str.substring(0, str.length()-1);
+        return sb.toString().replace("},]", "}]");
     }
 
     public long getId() {
