@@ -31,6 +31,7 @@ public class DGListener extends Listener {
 
                 case ROOMS_INFO:
                     roomsInfo(connection, privateMsg);
+                    break;
 
                 case CREATE_ROOM:
                     createRoom(connection, privateMsg);
