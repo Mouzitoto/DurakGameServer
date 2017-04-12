@@ -458,9 +458,5 @@ public class DGListener extends Listener {
         connection.sendTCP(privateMsg);
 
         logger.log(Level.INFO, "handshake sent, playerId: " + player.getId());
-
-        //send information about rooms
-        roomsInfo(connection, privateMsg);
-
     }
 }
